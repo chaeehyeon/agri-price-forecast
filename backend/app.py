@@ -6,7 +6,13 @@ import datetime
 from flask import request, jsonify
 import joblib
 
-app = Flask(__name__)
+# app = Flask(__name__)
+# React 빌드를 담은 static 폴더를 지정
+app = Flask(
+     __name__,
+    static_folder='static',    # build 결과물이 들어있는 폴더
+   static_url_path=''         # URL 루트(/)에 매핑
+)
 CORS(app)
 model = joblib.load("model.pkl")
 
@@ -70,6 +76,10 @@ def get_data():
     # JSON으로 변환 (리스트 of 딕셔너리)
     data = df.to_dict(orient='records')
     return jsonify(data)
-
+    # SPA 핸들러: 그 외 모든 경로는 React의 index.html 로
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve(path):
+        return send_from_directory(app.static_folder, 'index.html')
 if __name__ == '__main__':
     app.run(debug=True)
